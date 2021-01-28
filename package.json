@@ -1,0 +1,17 @@
+{
+  "name": "sql_to_node",
+  "version": "1.0.0",
+  "description": "creating our beautiful node program",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node"
+  ],
+  "author": "the dream team",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
