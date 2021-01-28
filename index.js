@@ -2,13 +2,14 @@
 const express = require('express');
 const app = express();
 const port = 3000;
+// import routes
+const postsRoutes = require('./routes/posts');
 
-// const postsRoutes = require('./routes/posts');
-// app.use('/posts', postsRoutes);
-
-// Defining an endpoint and handler for the endpoint
-// app.get requires two params: path, callback (middleware)
-app.get('/', (req, res) => res.send('YOU have accessed / on my api'));
+// use postsRoutes
+app.use('/posts', postsRoutes);
 
 // Starting server
 app.listen(port, () => console.log(`Server listening on port ${port}`));
+
+// test our first endpoint:
+// http://localhost:3000/posts/all --> should be redirected to http://localhost:3000/posts/
