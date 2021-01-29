@@ -9,7 +9,10 @@ const postsRoutes = require('./routes/posts');
 app.use('/posts', postsRoutes);
 
 // get request to homepage
-app.get('/', (req, res) => res.send('main page - will show all posts'));
+app.get('/', (req, res) => {
+  console.log('redirecting from hompage');
+  res.redirect('/posts');
+});
 
 // Starting server
 app.listen(port, () => console.log(`Server listening on port ${port}`));

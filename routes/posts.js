@@ -6,7 +6,7 @@ const postsController = require('../controllers/posts');
 router.get(
   '/',
   //   postsController.logRequest,
-  postsController.logAllPostsRedirect
+  postsController.logRequest
 );
 
 module.exports = router;

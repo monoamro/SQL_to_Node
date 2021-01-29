@@ -1,14 +1,6 @@
 const postsController = {
-  logAllPostsRedirect:
-    ('../posts',
-    (req, res) => {
-      res.redirect('../');
-    }),
-
   logRequest: (req, res, next) => {
-    console.log('There was a request made on /posts');
-    console.log('IP INC: ' + req.ip);
-    next();
+    res.end('There was a request made on /posts');
   },
   getAll: (req, res) => {
     // sql work related stuff
