@@ -2,12 +2,21 @@ const express = require('express');
 const router = express.Router();
 const postsController = require('../controllers/posts');
 
+// get request to homepage
+router.get('/', (req, res) => {
+    console.log('redirecting from hompage');
+    res.redirect('/posts');
+  });
+  
 // First endpoint: "../" & "../posts"
 router.get(
-  '/',
-  //   postsController.logRequest,
-  postsController.logRequest
+  '/posts',
+  // postsController.logRequest then get all posts
+  postsController.logRequest,
+  postsController.getAll
 );
+
+
 
 module.exports = router;
 

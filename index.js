@@ -6,13 +6,8 @@ const port = 3000;
 const postsRoutes = require('./routes/posts');
 
 // use postsRoutes
-app.use('/posts', postsRoutes);
+app.use('/', postsRoutes);
 
-// get request to homepage
-app.get('/', (req, res) => {
-  console.log('redirecting from hompage');
-  res.redirect('/posts');
-});
 
 // Starting server
 app.listen(port, () => console.log(`Server listening on port ${port}`));
