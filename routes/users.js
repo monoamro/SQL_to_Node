@@ -5,5 +5,9 @@ const usersController = require('../controllers/users');
 
 module.exports = router;
 
-// ** Further endpoint that will be required:
 // '/users/id': show user profile
+router.get(
+  '/:userId',
+  // usersController.logRequest,
+  usersController.getUserById
+);
