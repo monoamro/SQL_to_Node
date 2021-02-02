@@ -15,10 +15,11 @@ const usersRoutes = require('./routes/users');
 
 // use postsRoutes
 app.use('/', postsRoutes);
+// use usersRoutes
 app.use('/users', usersRoutes);
 
 // Starting server
-app.listen(port, () => console.log(`Server listening on port ${port}`));
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
 
 // mainpage shows all posts:
 // http://localhost:3000/ --> should get redirected to http://localhost:3000/posts

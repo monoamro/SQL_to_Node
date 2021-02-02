@@ -8,6 +8,22 @@ router.get('/', (req, res) => {
   res.redirect('/posts');
 });
 
+// '/posts/ratings/best': show best posts
+router.get(
+  '/posts/ratings/desc',
+  // postsController.logRequest,
+  postsController.getPostsByRatingDesc
+);
+
+// '/posts/ratings/rating': show posts by rating
+// '/posts/ratings/5': show best posts
+router.get(
+  '/posts/ratings/:rating',
+  // postsController.logRequest,
+  postsController.getPostsByRating
+);
+
+
 // First endpoint: "../" & "../posts"
 router.get(
   '/posts',
@@ -36,19 +52,9 @@ router.get(
   postsController.getPostsByUserId
 );
 
-// '/posts/ratings/rating': show posts by rating
-// '/posts/ratings/5': show best posts
-router.get(
-  '/posts/ratings/:rating',
-  // postsController.logRequest,
-  postsController.getPostsByRating
-);
 
-// '/posts/ratings/best': show best posts
-router.get(
-  '/posts/ratings/desc',
-  // postsController.logRequest,
-  postsController.getPostsByRatingDesc
-);
+
+
+
 
 module.exports = router;
