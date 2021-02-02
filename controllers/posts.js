@@ -1,22 +1,22 @@
 const pool = require('../dbconfig');
 
+const sqlAllPosts = `
+  SELECT *,
+  ( SELECT row_to_json(userinfo)
+    FROM
+    ( SELECT *
+      FROM users WHERE users.id = posts.userid
+    ) userinfo
+  ) as user FROM posts `;
+
 const postsController = {
   logRequest: (req, res, next) => {
     console.log('There was a request made on /posts');
     next();
   },
   getAll: async (req, res) => {
-    const getAllSQL = `
-      SELECT *,
-      ( SELECT row_to_json(userinfo)
-        FROM
-        ( SELECT *
-          FROM users WHERE users.id = posts.userid
-        ) userinfo
-      ) as user FROM posts;`;
-
     const query = {
-      text: getAllSQL,
+      text: sqlAllPosts + ';',
     };
 
     try {
@@ -33,10 +33,24 @@ const postsController = {
     // send back the data as a json
   },
 
-  getPostsByTopicId: (req, res) => {
-    // sql work related stuff
-    res.send(`here you have the posts with topic id ${req.params.topicId}`);
-    // send back the data as a json
+  getPostsByTopicId: async (req, res) => {
+    const topicId = parseInt(req.params.topicId);
+    if (isNaN(topicId) || topicId < 1) return res.sendStatus(400);
+
+    const query = {
+      text: `${sqlAllPosts} WHERE posts.topicid =$1;`,
+      values: [topicId],
+    };
+
+    try {
+      const data = await pool.query(query);
+
+      if (data.rows.length === 0) return res.sendStatus(404);
+
+      res.json(data.rows);
+    } catch {
+      return res.sendStatus(500);
+    }
   },
 
   getPostsByUserId: (req, res) => {
