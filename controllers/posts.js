@@ -1,3 +1,5 @@
+const pool = require('../dbconfig');
+
 const postsController = {
   logRequest: (req, res, next) => {
     console.log('There was a request made on /posts');
