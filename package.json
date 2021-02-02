@@ -4,6 +4,7 @@
   "description": "creating our beautiful node program",
   "main": "index.js",
   "scripts": {
+    "start:nodemon": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -15,5 +16,8 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "pg": "^8.5.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
   }
 }
