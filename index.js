@@ -1,7 +1,14 @@
 // Create entry point
 const express = require('express');
+const dotenv = require('dotenv');
+// init of dotenv
+dotenv.config();
+
 const app = express();
-const port = 3000;
+const { PORT } = process.env;
+
+// const port = 3000;
+
 // import routes
 const postsRoutes = require('./routes/posts');
 const usersRoutes = require('./routes/users');
@@ -13,5 +20,5 @@ app.use('/users', usersRoutes);
 // Starting server
 app.listen(port, () => console.log(`Server listening on port ${port}`));
 
-// test our first endpoint:
-// http://localhost:3000/posts --> should be redirected to http://localhost:3000/
+// mainpage shows all posts:
+// http://localhost:3000/ --> should get redirected to http://localhost:3000/posts
