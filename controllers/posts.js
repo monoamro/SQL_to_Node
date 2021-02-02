@@ -5,10 +5,26 @@ const postsController = {
     console.log('There was a request made on /posts');
     next();
   },
-  getAll: (req, res) => {
-    // sql work related stuff
-    res.send('here are all the posts');
-    // send back the data as a json
+  getAll: async (req, res) => {
+    const getAllSQL = `
+      SELECT *,
+      ( SELECT row_to_json(userinfo)
+        FROM
+        ( SELECT *
+          FROM users WHERE users.id = posts.userid
+        ) userinfo
+      ) as user FROM posts;`;
+
+    const query = {
+      text: getAllSQL,
+    };
+
+    try {
+      const data = await pool.query(query);
+      res.json(data.rows);
+    } catch {
+      return res.sendStatus(500);
+    }
   },
 
   getPostById: (req, res) => {
