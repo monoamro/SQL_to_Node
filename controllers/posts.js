@@ -22,8 +22,7 @@ const postsController = {
     try {
       const data = await pool.query(query);
       res.json(data.rows);
-    } catch (e) {
-      console.log(e);
+    } catch {
       return res.sendStatus(500);
     }
   },
