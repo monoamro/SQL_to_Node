@@ -9,11 +9,17 @@ const sqlAllPosts = `
     ) userinfo
   ) as user FROM posts `;
 
+const validateId = (id, limit, data, idTitle) => {
+  if(isNaN(id) || id < limit) throw { code: 400, message: `Wrong ${idTitle}Id` };
+  if (data.rows.length === 0) throw { code: 404, message: "No posts found" };
+}
+
 const postsController = {
   logRequest: (req, res, next) => {
     console.log('There was a request made on /posts');
     next();
   },
+
   getAll: async (req, res) => {
     const query = {
       text: sqlAllPosts + ';',
@@ -27,16 +33,30 @@ const postsController = {
     }
   },
 
-  getPostById: (req, res) => {
-    // sql work related stuff
-    res.send(`here you have the post with id ${req.params.postId}`);
-    // send back the data as a json
+  getPostById: async (req, res) => {
+    const { postId } = req.params;
+    const query = {
+      text: `${sqlAllPosts} WHERE id=$1;`,
+      values: [postId],
+    };
+
+    try {
+      const data = await pool.query(query);
+      validateId(parseInt(postId), 1, data, "post");
+      res.json({
+          message: 'Successfully fetched post with id: ' + postId,
+          code: 200,
+          description: 'Array: Post with id: ' + postId,
+          data: data.rows,
+        });
+    } catch (e) {
+      console.error(Error(e.message + " Error: " + e.code))
+      res.status(e.code).send(e.message);
+    }
   },
 
   getPostsByTopicId: async (req, res) => {
-    const topicId = parseInt(req.params.topicId);
-    if (isNaN(topicId) || topicId < 1) return res.sendStatus(400);
-
+    const { topicId } = req.params;
     const query = {
       text: `${sqlAllPosts} WHERE posts.topicid =$1;`,
       values: [topicId],
@@ -44,35 +64,37 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-
-      if (data.rows.length === 0) return res.sendStatus(404);
-
-      res.json(data.rows);
-    } catch {
-      return res.sendStatus(500);
+      validateId(parseInt(topicId), 1, data, "topic");
+      res.json({
+          message: 'Successfully fetched posts with topic id: ' + topicId,
+          code: 200,
+          description: 'Array: Posts with topic id: ' + topicId,
+          data: data.rows,
+        });
+    } catch (e) {
+      console.error(Error(e.message + " Error: " + e.code))
+      res.status(e.code).send(e.message);
     }
   },
 
   getPostsByUserId: async (req, res) => {
-    // sql work related stuff
+    const { userId } = req.params;
     try {
-      const id = req.params.userId;
-      const dbResponse = await pool.query(
+      const data = await pool.query(
         `SELECT posts.title, posts.description, users.id FROM posts JOIN users ON users.id = posts.userid WHERE users.id=$1`,
-        [id]
-      );
-      res.json({
-        message: 'Successfully found user',
-        code: 200,
-        description: 'Array: post by db',
-        data: dbResponse.rows,
+        [userId]
+        );
+        validateId(parseInt(userId), 1, data, "user");
+        res.json({
+        message: 'Successfully fetched posts from user with id: ' + userId,
+          code: 200,
+          description: 'Array: Posts from user with id: ' + userId,
+          data: data.rows,
       });
     } catch (e) {
-      console.error(Error(e));
-      res.sendStatus(500).json('wrong turn');
+      console.error(Error(e.message + " Error: " + e.code))
+      res.status(e.code).send(e.message);
     }
-    // send back the data as a json
-    // res.send(`here you have the posts with user id ${req.params.userId}`);
   },
 
   getPostsByRating: (req, res) => {
