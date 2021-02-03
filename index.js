@@ -7,8 +7,6 @@ dotenv.config();
 const app = express();
 const { PORT } = process.env;
 
-// const port = 3000;
-
 // import routes
 const postsRoutes = require('./routes/posts');
 const usersRoutes = require('./routes/users');

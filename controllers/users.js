@@ -6,10 +6,26 @@ const usersController = {
     next();
   },
 
-  getUserById: (req, res) => {
+  getUserById: async (req, res) => {
     // sql work related stuff
-    res.send(`here you have the user with id ${req.params.userId}`);
+
+    try {
+      const id = req.params.userId;
+      const dbResponse = await pool.query(`SELECT * FROM users WHERE id=$1;`, [
+        id,
+      ]);
+      res.json({
+        message: 'Successfully found user',
+        code: 200,
+        description: 'Array: user by id',
+        data: dbResponse.rows,
+      });
+    } catch (e) {
+      console.error(Error(e));
+      res.sendStatus(500).json('wrong turn');
+    }
     // send back the data as a json
+    // res.send(`here you have the user with id ${req.params.userId}`);
   },
 };
 
