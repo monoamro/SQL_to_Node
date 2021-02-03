@@ -26,7 +26,20 @@ const postsController = {
       return res.sendStatus(500);
     }
   },
+  getPostByTitleSearch: async (req, res) => {
+    try {
+      const title = req.query.title.toLowerCase();
+      console.log(title);
 
+      const data = await pool.query(
+        `${sqlAllPosts} WHERE LOWER(posts.title) LIKE '%${title}%'`
+      );
+
+      res.json(data.rows);
+    } catch {
+      return res.sendStatus(500);
+    }
+  },
   getPostById: (req, res) => {
     // sql work related stuff
     res.send(`here you have the post with id ${req.params.postId}`);
