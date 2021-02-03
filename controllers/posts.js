@@ -30,14 +30,17 @@ const postsController = {
   getPostBySearch: async (req, res) => {
     const title = req.query.title;
     const topic = req.query.topic;
+    const description = req.query.description;
     let query = {};
     if (title) {
       query = {
         text: `${sqlAllPosts} WHERE LOWER(posts.title) LIKE '%${title}%'`,
       };
     }
-    if (topic) {
-      res.send('hello');
+    if (description) {
+      query = {
+        text: `${sqlAllPosts} WHERE LOWER(posts.description) LIKE '%${description}%'`,
+      };
     }
     try {
       const data = await pool.query(query);
