@@ -14,7 +14,7 @@ router.get(
   // postsController.logRequest,
   postsController.getAll
 );
-
+router.get('/posts/search', postsController.getPostBySearch);
 // '/posts/id'
 router.get(
   '/posts/:postId',

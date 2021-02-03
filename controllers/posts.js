@@ -22,18 +22,25 @@ const postsController = {
     try {
       const data = await pool.query(query);
       res.json(data.rows);
-    } catch {
+    } catch (e) {
+      console.log(e);
       return res.sendStatus(500);
     }
   },
-  getPostByTitleSearch: async (req, res) => {
+  getPostBySearch: async (req, res) => {
+    const title = req.query.title;
+    const topic = req.query.topic;
+    let query = {};
+    if (title) {
+      query = {
+        text: `${sqlAllPosts} WHERE LOWER(posts.title) LIKE '%${title}%'`,
+      };
+    }
+    if (topic) {
+      res.send('hello');
+    }
     try {
-      const title = req.query.title.toLowerCase();
-      console.log(title);
-
-      const data = await pool.query(
-        `${sqlAllPosts} WHERE LOWER(posts.title) LIKE '%${title}%'`
-      );
+      const data = await pool.query(query);
 
       res.json(data.rows);
     } catch {
