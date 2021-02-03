@@ -32,21 +32,19 @@ const postsController = {
     let description = req.query.description;
     let query = {};
     if (title) {
-      title = title.toLowerCase();
+      // title = title.toLowerCase();
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(posts.title) LIKE '%${title}%'`,
+        text: `${sqlAllPosts} WHERE LOWER(posts.title) LIKE LOWER('%${title}%')`,
       };
     }
     if (description) {
-      description = description.toLowerCase();
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(posts.description) LIKE '%${description}%'`,
+        text: `${sqlAllPosts} WHERE LOWER(posts.description) LIKE LOWER('%${description}%')`,
       };
     }
     if (topic) {
-      topic = topic.toLowerCase();
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(tp.title) LIKE '%${topic}%'`,
+        text: `${sqlAllPosts} WHERE LOWER(tp.title) LIKE LOWER('%${topic}%')`,
       };
     }
     try {
