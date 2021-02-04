@@ -1,4 +1,5 @@
 const pool = require('../dbconfig');
+const buildResponse = require('../response');
 
 const sqlAllPosts = `
   SELECT *,
@@ -10,7 +11,7 @@ const sqlAllPosts = `
   ) as user FROM posts `;
 
 const validateId = (id, limit, data, idTitle) => {
-  if(isNaN(id) || id < limit) throw { code: 400, message: `Wrong ${idTitle}Id` };
+  if(id < limit) throw { code: 400, message: `Wrong ${idTitle}Id` };
   if (data.rows.length === 0) throw { code: 404, message: "No posts found" };
 }
 
@@ -27,9 +28,14 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-      res.json(data.rows);
+      res.json(buildResponse(200, "Fetched all posts", data.rows));
     } catch {
-      return res.sendStatus(500);
+      if (e.status) {
+        return res.status(e.status).json(e);
+      } else {
+        const response = buildResponse(500, "Internal server error", e.message);
+        return res.status(response.status).json(response);
+      }
     }
   },
 
@@ -42,16 +48,12 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-      validateId(parseInt(postId), 1, data, "post");
-      res.json({
-          message: 'Successfully fetched post with id: ' + postId,
-          code: 200,
-          description: 'Array: Post with id: ' + postId,
-          data: data.rows,
-        });
+      validateId(postId, 1, data, "post");
+      res.json( buildResponse(200, `'Successfully fetched post with id: ${postId}`, data.rows));
     } catch (e) {
-      console.error(Error(e.message + " Error: " + e.code))
-      res.status(e.code).send(e.message);
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, "Internal server error", e.message); 
+      res.status(response.status).json(response);
     }
   },
 
@@ -64,16 +66,12 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-      validateId(parseInt(topicId), 1, data, "topic");
-      res.json({
-          message: 'Successfully fetched posts with topic id: ' + topicId,
-          code: 200,
-          description: 'Array: Posts with topic id: ' + topicId,
-          data: data.rows,
-        });
+      validateId(topicId, 1, data, "topic");
+      res.json( buildResponse(200, `'Successfully fetched post with topic id: ${topicId}`, data.rows));
     } catch (e) {
-      console.error(Error(e.message + " Error: " + e.code))
-      res.status(e.code).send(e.message);
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, "Internal server error", e.message); 
+      res.status(response.status).json(response);
     }
   },
 
@@ -84,7 +82,7 @@ const postsController = {
         `SELECT posts.title, posts.description, users.id FROM posts JOIN users ON users.id = posts.userid WHERE users.id=$1`,
         [userId]
         );
-        validateId(parseInt(userId), 1, data, "user");
+        validateId(userId, 1, data, "user");
         res.json({
         message: 'Successfully fetched posts from user with id: ' + userId,
           code: 200,
