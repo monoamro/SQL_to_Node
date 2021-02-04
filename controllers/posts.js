@@ -157,12 +157,13 @@ const postsController = {
     try {
       const data = await pool.query(sqlPostsByUserId, [userId]);
       validateId(userId, 1, data, 'user');
-      res.json({
-        message: 'Successfully fetched posts from user with id: ' + userId,
-        code: 200,
-        description: 'Array: Posts from user with id: ' + userId,
-        data: data.rows,
-      });
+      res.json(
+        buildResponse(
+          200,
+          'Array: Posts from user with id: ' + userId,
+          data.rows
+        )
+      );
     } catch (e) {
       console.error(Error(e.message + ' Error: ' + e.code));
       res.status(e.code).send(e.message);
