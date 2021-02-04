@@ -35,30 +35,39 @@ const postsController = {
     }
   },
   getPostBySearch: async (req, res) => {
-    let title = req.query.title;
-    let topic = req.query.topic;
-    let description = req.query.description;
+    const { title, description, topic } = req.query;
     let query = {};
     if (title) {
       // title = title.toLowerCase();
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(posts.title) LIKE LOWER('%${title}%')`,
+        text: `${sqlAllPosts} WHERE LOWER(ps.title) LIKE LOWER($1)`,
+        values: ['%' + title + '%'],
+        name: 'title',
       };
     }
     if (description) {
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(posts.description) LIKE LOWER('%${description}%')`,
+        text: `${sqlAllPosts} WHERE LOWER(ps.description) LIKE LOWER($1)`,
+        values: ['%' + description + '%'],
+        name: 'description',
       };
     }
     if (topic) {
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(tp.title) LIKE LOWER('%${topic}%')`,
+        text: `${sqlAllPosts} WHERE LOWER(tp.title) LIKE LOWER($1)`,
+        values: ['%' + topic + '%'],
+        name: 'topic',
       };
     }
     try {
       const data = await pool.query(query);
 
-      res.json(data.rows);
+      res.json({
+        message: 'Search successfull',
+        code: 200,
+        description: `Search Results for ${query.name} ${query.values[0]}`,
+        data: data.rows,
+      });
     } catch {
       return res.sendStatus(500);
     }
