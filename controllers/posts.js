@@ -2,21 +2,38 @@ const pool = require('../dbconfig');
 const buildResponse = require('../response');
 
 const sqlAllPosts = `
-SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
-       tp.title as topictitle,
-(
-  SELECT row_to_json(userinfo)
-  FROM
-    ( SELECT us.*, pm.level as premiumlevel
-      FROM users us
-      JOIN premiums AS pm
-      ON us.premiumid=pm.id
-      WHERE us.id = ps.userid
-    ) userinfo
-) AS user
-FROM posts AS ps
-LEFT JOIN topics AS tp
-ON tp.id = ps.topicid `;
+  SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
+         tp.title as topictitle,
+  (
+    SELECT row_to_json(userinfo)
+    FROM
+      ( SELECT us.*, pm.level as premiumlevel
+        FROM users us
+        JOIN premiums AS pm
+        ON us.premiumid=pm.id
+        WHERE us.id = ps.userid
+      ) userinfo
+  ) AS user
+  FROM posts AS ps
+  LEFT JOIN topics AS tp
+  ON tp.id = ps.topicid `;
+
+const sqlPostsByUserId = `
+  SELECT * FROM (
+  SELECT row_to_json(userinfo) AS "user"
+  FROM (
+      SELECT *
+      FROM users
+  WHERE users.id=$1
+  ) AS userinfo
+  	) AS userdata,
+  (SELECT json_agg(row_to_json(postsinfo)) AS "posts"
+  FROM (
+       SELECT posts.id, posts.title, posts.description, posts.topicid
+        FROM posts
+      JOIN users ON users.id = posts.userid
+  WHERE users.id=$1
+  ) AS postsinfo) AS postsdata;`;
 
 const validateId = (id, limit, data, idTitle) => {
   let response = {};
@@ -135,10 +152,7 @@ const postsController = {
   getPostsByUserId: async (req, res) => {
     const { userId } = req.params;
     try {
-      const data = await pool.query(
-        `SELECT posts.title, posts.description, users.id FROM posts JOIN users ON users.id = posts.userid WHERE users.id=$1`,
-        [userId]
-      );
+      const data = await pool.query(sqlPostsByUserId, [userId]);
       validateId(userId, 1, data, 'user');
       res.json({
         message: 'Successfully fetched posts from user with id: ' + userId,
