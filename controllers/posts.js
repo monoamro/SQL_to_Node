@@ -19,8 +19,17 @@ LEFT JOIN topics AS tp
 ON tp.id = ps.topicid `;
 
 const validateId = (id, limit, data, idTitle) => {
-  if (id < limit) throw { code: 400, message: `Wrong ${idTitle}Id` };
-  if (data.rows.length === 0) throw { code: 404, message: 'No posts found' };
+  let response = {};
+
+  if (id < limit) {
+    response = buildResponse(400, `Wrong ${idTitle}Id`);
+    throw response;
+  }
+
+  if (data.rows.length === 0) {
+    response = buildResponse(404, 'No posts found');
+    throw response;
+  }
 };
 
 const postsController = {
@@ -78,7 +87,7 @@ const postsController = {
   getPostById: async (req, res) => {
     const { postId } = req.params;
     const query = {
-      text: `${sqlAllPosts} WHERE id=$1;`,
+      text: `${sqlAllPosts} WHERE ps.id=$1;`,
       values: [postId],
     };
 
@@ -88,7 +97,7 @@ const postsController = {
       res.json(
         buildResponse(
           200,
-          `'Successfully fetched post with id: ${postId}`,
+          `Successfully fetched post with id: ${postId}`,
           data.rows
         )
       );
@@ -112,7 +121,7 @@ const postsController = {
       res.json(
         buildResponse(
           200,
-          `'Successfully fetched post with topic id: ${topicId}`,
+          `Successfully fetched post with topic id: ${topicId}`,
           data.rows
         )
       );
