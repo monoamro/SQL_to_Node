@@ -1,13 +1,21 @@
 const pool = require('../dbconfig');
 
 const sqlAllPosts = `
-  SELECT *,
-  ( SELECT row_to_json(userinfo)
-    FROM
-    ( SELECT *
-      FROM users WHERE users.id = posts.userid
+SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
+       tp.title as topictitle,
+(
+  SELECT row_to_json(userinfo)
+  FROM
+    ( SELECT us.*, pm.level as premiumlevel
+      FROM users us
+      JOIN premiums AS pm
+      ON us.premiumid=pm.id
+      WHERE us.id = ps.userid
     ) userinfo
-  ) as user FROM posts `;
+) AS user
+FROM posts AS ps
+LEFT JOIN topics AS tp
+ON tp.id = ps.topicid `;
 
 const postsController = {
   logRequest: (req, res, next) => {
@@ -38,7 +46,7 @@ const postsController = {
     if (isNaN(topicId) || topicId < 1) return res.sendStatus(400);
 
     const query = {
-      text: `${sqlAllPosts} WHERE posts.topicid =$1;`,
+      text: `${sqlAllPosts} WHERE ps.topicid =$1;`,
       values: [topicId],
     };
 
