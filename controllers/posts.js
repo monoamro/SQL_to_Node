@@ -1,4 +1,5 @@
 const pool = require('../dbconfig');
+const buildResponse = require('../response');
 
 const sqlAllPosts = `
 SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
@@ -17,11 +18,17 @@ FROM posts AS ps
 LEFT JOIN topics AS tp
 ON tp.id = ps.topicid `;
 
+const validateId = (id, limit, data, idTitle) => {
+  if (id < limit) throw { code: 400, message: `Wrong ${idTitle}Id` };
+  if (data.rows.length === 0) throw { code: 404, message: 'No posts found' };
+};
+
 const postsController = {
   logRequest: (req, res, next) => {
     console.log('There was a request made on /posts');
     next();
   },
+
   getAll: async (req, res) => {
     const query = {
       text: sqlAllPosts + ';',
@@ -29,9 +36,14 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-      res.json(data.rows);
+      res.json(buildResponse(200, 'Fetched all posts', data.rows));
     } catch {
-      return res.sendStatus(500);
+      if (e.status) {
+        return res.status(e.status).json(e);
+      } else {
+        const response = buildResponse(500, 'Internal server error', e.message);
+        return res.status(response.status).json(response);
+      }
     }
   },
   getPostBySearch: async (req, res) => {
@@ -57,22 +69,38 @@ const postsController = {
     }
     try {
       const data = await pool.query(query);
-
       res.json(data.rows);
     } catch {
       return res.sendStatus(500);
     }
   },
-  getPostById: (req, res) => {
-    // sql work related stuff
-    res.send(`here you have the post with id ${req.params.postId}`);
-    // send back the data as a json
+
+  getPostById: async (req, res) => {
+    const { postId } = req.params;
+    const query = {
+      text: `${sqlAllPosts} WHERE id=$1;`,
+      values: [postId],
+    };
+
+    try {
+      const data = await pool.query(query);
+      validateId(postId, 1, data, 'post');
+      res.json(
+        buildResponse(
+          200,
+          `'Successfully fetched post with id: ${postId}`,
+          data.rows
+        )
+      );
+    } catch (e) {
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, 'Internal server error', e.message);
+      res.status(response.status).json(response);
+    }
   },
 
   getPostsByTopicId: async (req, res) => {
-    const topicId = parseInt(req.params.topicId);
-    if (isNaN(topicId) || topicId < 1) return res.sendStatus(400);
-
+    const { topicId } = req.params;
     const query = {
       text: `${sqlAllPosts} WHERE ps.topicid =$1;`,
       values: [topicId],
@@ -80,35 +108,39 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-
-      if (data.rows.length === 0) return res.sendStatus(404);
-
-      res.json(data.rows);
-    } catch {
-      return res.sendStatus(500);
+      validateId(topicId, 1, data, 'topic');
+      res.json(
+        buildResponse(
+          200,
+          `'Successfully fetched post with topic id: ${topicId}`,
+          data.rows
+        )
+      );
+    } catch (e) {
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, 'Internal server error', e.message);
+      res.status(response.status).json(response);
     }
   },
 
   getPostsByUserId: async (req, res) => {
-    // sql work related stuff
+    const { userId } = req.params;
     try {
-      const id = req.params.userId;
-      const dbResponse = await pool.query(
+      const data = await pool.query(
         `SELECT posts.title, posts.description, users.id FROM posts JOIN users ON users.id = posts.userid WHERE users.id=$1`,
-        [id]
+        [userId]
       );
+      validateId(userId, 1, data, 'user');
       res.json({
-        message: 'Successfully found user',
+        message: 'Successfully fetched posts from user with id: ' + userId,
         code: 200,
-        description: 'Array: post by db',
-        data: dbResponse.rows,
+        description: 'Array: Posts from user with id: ' + userId,
+        data: data.rows,
       });
     } catch (e) {
-      console.error(Error(e));
-      res.sendStatus(500).json('wrong turn');
+      console.error(Error(e.message + ' Error: ' + e.code));
+      res.status(e.code).send(e.message);
     }
-    // send back the data as a json
-    // res.send(`here you have the posts with user id ${req.params.userId}`);
   },
 
   getPostsByRating: (req, res) => {
