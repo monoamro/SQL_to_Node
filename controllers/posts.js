@@ -9,7 +9,7 @@ const sqlAllPosts = `
     FROM
       ( SELECT us.*, pm.level as premiumlevel
         FROM users us
-        JOIN premiums AS pm
+        LEFT JOIN premiums AS pm
         ON us.premiumid=pm.id
         WHERE us.id = ps.userid
       ) userinfo
@@ -20,20 +20,23 @@ const sqlAllPosts = `
 
 const sqlPostsByUserId = `
   SELECT * FROM (
-  SELECT row_to_json(userinfo) AS "user"
-  FROM (
-      SELECT *
-      FROM users
-  WHERE users.id=$1
-  ) AS userinfo
-  	) AS userdata,
-  (SELECT json_agg(row_to_json(postsinfo)) AS "posts"
-  FROM (
-       SELECT posts.id, posts.title, posts.description, posts.topicid
-        FROM posts
-      JOIN users ON users.id = posts.userid
-  WHERE users.id=$1
-  ) AS postsinfo) AS postsdata;`;
+    SELECT row_to_json(userinfo) AS "user"
+    FROM (
+      SELECT us1.*, pm.level as premiumlevel
+      FROM users us1
+  	  LEFT JOIN premiums AS pm ON us1.premiumid=pm.id
+      WHERE us1.id=$1
+    ) AS userinfo
+  ) AS userdata,
+    (SELECT json_agg(row_to_json(postsinfo)) AS "posts"
+    FROM (
+    SELECT ps.id, ps.title, ps.description, ps.topicid, tp.title as topictitle
+    FROM posts AS ps
+    JOIN users us2 ON us2.id = ps.userid
+    LEFT JOIN topics AS tp ON tp.id = ps.topicid
+    WHERE us2.id=$1
+    ) AS postsinfo
+  ) AS postsdata;`;
 
 const validateId = (id, limit, data, idTitle) => {
   let response = {};
