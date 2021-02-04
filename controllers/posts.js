@@ -1,7 +1,6 @@
 const pool = require('../dbconfig');
 
-const sqlAllPosts = `
-SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
+const sqlAllPosts = `SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
        tp.title as topictitle,
 (
   SELECT row_to_json(userinfo)
@@ -23,15 +22,19 @@ const postsController = {
     next();
   },
   getAll: async (req, res) => {
-    const query = {
-      text: sqlAllPosts + ';',
-    };
-
+    let query = { text: sqlAllPosts + ';'};
+    if (req.query) {
+      const { orderby, sort } = req.query;
+      query = {
+        text: `${sqlAllPosts}ORDER BY $1 $2;`,
+        values: [orderby, sort]
+      };
+    }
     try {
       const data = await pool.query(query);
       res.json(data.rows);
-    } catch {
-      return res.sendStatus(500);
+    } catch (e){
+      return res.send(e.message);
     }
   },
   getPostBySearch: async (req, res) => {
@@ -118,8 +121,10 @@ const postsController = {
   },
 
   getPostsByRatingDesc: (req, res) => {
+    console.log(req.query)
+    // res.send("Hello")
     // sql work related stuff
-    res.send(`here you have the posts with ordered by rating DESC`);
+    // res.send(`here you have the posts with ordered by rating DESC`);
     // send back the data as a json
   },
 };
