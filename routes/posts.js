@@ -15,6 +15,9 @@ router.get(
   postsController.getAll
 );
 
+//'/posts/search? title, description, topic
+router.get('/posts/search', postsController.getPostBySearch);
+
 // '/posts/id'
 router.get(
   '/posts/:postId',

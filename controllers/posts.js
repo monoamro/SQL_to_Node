@@ -34,7 +34,35 @@ const postsController = {
       return res.sendStatus(500);
     }
   },
+  getPostBySearch: async (req, res) => {
+    let title = req.query.title;
+    let topic = req.query.topic;
+    let description = req.query.description;
+    let query = {};
+    if (title) {
+      // title = title.toLowerCase();
+      query = {
+        text: `${sqlAllPosts} WHERE LOWER(posts.title) LIKE LOWER('%${title}%')`,
+      };
+    }
+    if (description) {
+      query = {
+        text: `${sqlAllPosts} WHERE LOWER(posts.description) LIKE LOWER('%${description}%')`,
+      };
+    }
+    if (topic) {
+      query = {
+        text: `${sqlAllPosts} WHERE LOWER(tp.title) LIKE LOWER('%${topic}%')`,
+      };
+    }
+    try {
+      const data = await pool.query(query);
 
+      res.json(data.rows);
+    } catch {
+      return res.sendStatus(500);
+    }
+  },
   getPostById: (req, res) => {
     // sql work related stuff
     res.send(`here you have the post with id ${req.params.postId}`);
