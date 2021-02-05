@@ -40,21 +40,21 @@ const postsController = {
     if (title) {
       // title = title.toLowerCase();
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(ps.title) LIKE LOWER($1)`,
+        text: `${sqlAllPosts} WHERE ps.title ILIKE $1`,
         values: ['%' + title + '%'],
         name: 'title',
       };
     }
     if (description) {
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(ps.description) LIKE LOWER($1)`,
+        text: `${sqlAllPosts} WHERE ps.description ILIKE $1`,
         values: ['%' + description + '%'],
         name: 'description',
       };
     }
     if (topic) {
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(tp.title) LIKE LOWER($1)`,
+        text: `${sqlAllPosts} WHERE tp.title ILIKE $1`,
         values: ['%' + topic + '%'],
         name: 'topic',
       };
