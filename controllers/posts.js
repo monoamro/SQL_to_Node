@@ -3,23 +3,42 @@ const format = require('pg-format');
 const verify = require('../verify');
 const buildResponse = require('../response');
 
+const sqlAllPosts = `
+  SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
+         tp.title as topictitle,
+  (
+    SELECT row_to_json(userinfo)
+    FROM
+      ( SELECT us.*, pm.level as premiumlevel
+        FROM users us
+        LEFT JOIN premiums AS pm
+        ON us.premiumid=pm.id
+        WHERE us.id = ps.userid
+      ) userinfo
+  ) AS user
+  FROM posts AS ps
+  LEFT JOIN topics AS tp
+  ON tp.id = ps.topicid `;
 
-
-const sqlAllPosts = `SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
-       tp.title as topictitle,
-(
-  SELECT row_to_json(userinfo)
-  FROM
-    ( SELECT us.*, pm.level as premiumlevel
-      FROM users us
-      JOIN premiums AS pm
-      ON us.premiumid=pm.id
-      WHERE us.id = ps.userid
-    ) userinfo
-) AS user
-FROM posts AS ps
-LEFT JOIN topics AS tp
-ON tp.id = ps.topicid `;
+const sqlPostsByUserId = `
+  SELECT * FROM (
+    SELECT row_to_json(userinfo) AS "user"
+    FROM (
+      SELECT us1.*, pm.level as premiumlevel
+      FROM users us1
+  	  LEFT JOIN premiums AS pm ON us1.premiumid=pm.id
+      WHERE us1.id=$1
+    ) AS userinfo
+  ) AS userdata,
+    (SELECT json_agg(row_to_json(postsinfo)) AS "posts"
+    FROM (
+    SELECT ps.id, ps.title, ps.description, ps.topicid, tp.title as topictitle
+    FROM posts AS ps
+    JOIN users us2 ON us2.id = ps.userid
+    LEFT JOIN topics AS tp ON tp.id = ps.topicid
+    WHERE us2.id=$1
+    ) AS postsinfo
+  ) AS postsdata;`;
 
 const postsController = {
   logRequest: (req, res, next) => {
@@ -28,12 +47,13 @@ const postsController = {
   },
 
   getAll: async (req, res) => {
-    let query = { text: sqlAllPosts + ';'};
+    let query = { text: sqlAllPosts + ';' };
     try {
       if (Object.keys(req.query).length) {
         const { orderby, sort } = req.query;
         verify.query(orderby, sort);
         query = { text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort)};
+
       }
       const data = await pool.query(query);
       res.json(buildResponse(200, 'Fetched all posts', data.rows));
