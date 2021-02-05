@@ -1,4 +1,6 @@
 const pool = require('../dbconfig');
+const format = require('pg-format');
+const functions = require('../functions');
 const buildResponse = require('../response');
 
 const sqlAllPosts = `
@@ -52,6 +54,21 @@ const validateId = (id, limit, data, idTitle) => {
   }
 };
 
+const validateRating = rating => {
+  const parsedRating = parseInt(rating);
+
+  if (
+    !Number.isInteger(parsedRating) ||
+    !(parsedRating >= 1 && parsedRating <= 5)
+  ) {
+    let response = buildResponse(
+      400,
+      `Rating must be an integer between 1 and 5`
+    );
+    throw response;
+  }
+};
+
 const postsController = {
   logRequest: (req, res, next) => {
     console.log('There was a request made on /posts');
@@ -59,11 +76,13 @@ const postsController = {
   },
 
   getAll: async (req, res) => {
-    const query = {
-      text: sqlAllPosts + ';',
-    };
-
+    let query = { text: sqlAllPosts + ';'};
     try {
+      if (Object.keys(req.query).length) {
+        const { orderby, sort } = req.query;
+        functions.verifyQuery(orderby, sort);
+        query = { text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort)};
+      }
       const data = await pool.query(query);
       res.json(buildResponse(200, 'Fetched all posts', data.rows));
     } catch {
@@ -170,15 +189,35 @@ const postsController = {
     }
   },
 
-  getPostsByRating: (req, res) => {
-    // sql work related stuff
-    res.send(`here you have the posts with rating ${req.params.rating}`);
-    // send back the data as a json
+  getPostsByRating: async (req, res) => {
+    const { rating } = req.params;
+    const query = {
+      text: `${sqlAllPosts} WHERE ps.rating=$1;`,
+      values: [rating],
+    };
+
+    try {
+      const data = await pool.query(query);
+      validateRating(rating);
+      res.json(
+        buildResponse(
+          200,
+          `Successfully fetched post with rating: ${rating}`,
+          data.rows
+        )
+      );
+    } catch (e) {
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, 'Internal server error', e.message);
+      res.status(response.status).json(response);
+    }
   },
 
   getPostsByRatingDesc: (req, res) => {
+    console.log(req.query)
+    // res.send("Hello")
     // sql work related stuff
-    res.send(`here you have the posts with ordered by rating DESC`);
+    // res.send(`here you have the posts with ordered by rating DESC`);
     // send back the data as a json
   },
 };
