@@ -64,21 +64,27 @@ const postsController = {
     }
   },
   getPostBySearch: async (req, res) => {
-    const {title, topic, description} = req.query;
+    const { title, description, topic } = req.query;
     let query = {};
     if (title) {
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(ps.title) LIKE LOWER('%${title}%')`,
+        text: `${sqlAllPosts} WHERE ps.title ILIKE $1`,
+        values: ['%' + title + '%'],
+        name: 'title',
       };
     }
     if (description) {
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(ps.description) LIKE LOWER('%${description}%')`,
+        text: `${sqlAllPosts} WHERE ps.description ILIKE $1`,
+        values: ['%' + description + '%'],
+        name: 'description',
       };
     }
     if (topic) {
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(tp.title) LIKE LOWER('%${topic}%')`,
+        text: `${sqlAllPosts} WHERE tp.title ILIKE $1`,
+        values: ['%' + topic + '%'],
+        name: 'topic',
       };
     }
     try {
