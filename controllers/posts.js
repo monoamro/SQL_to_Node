@@ -76,16 +76,18 @@ const postsController = {
   },
 
   getAll: async (req, res) => {
-    let query = { text: sqlAllPosts + ';'};
+    let query = { text: sqlAllPosts + ';' };
     try {
       if (Object.keys(req.query).length) {
         const { orderby, sort } = req.query;
         functions.verifyQuery(orderby, sort);
-        query = { text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort)};
+        query = {
+          text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort),
+        };
       }
       const data = await pool.query(query);
       res.json(buildResponse(200, 'Fetched all posts', data.rows));
-    } catch {
+    } catch (e) {
       if (e.status) {
         return res.status(e.status).json(e);
       } else {
@@ -214,7 +216,7 @@ const postsController = {
   },
 
   getPostsByRatingDesc: (req, res) => {
-    console.log(req.query)
+    console.log(req.query);
     // res.send("Hello")
     // sql work related stuff
     // res.send(`here you have the posts with ordered by rating DESC`);
