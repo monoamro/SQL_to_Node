@@ -1,6 +1,6 @@
 const pool = require('../dbconfig');
 const format = require('pg-format');
-const functions = require('../functions');
+const verify = require('../verify');
 const buildResponse = require('../response');
 
 
@@ -21,35 +21,6 @@ FROM posts AS ps
 LEFT JOIN topics AS tp
 ON tp.id = ps.topicid `;
 
-const validateId = (id, limit, data, idTitle) => {
-  let response = {};
-
-  if (id < limit) {
-    response = buildResponse(400, `Wrong ${idTitle}Id`);
-    throw response;
-  }
-
-  if (data.rows.length === 0) {
-    response = buildResponse(404, 'No posts found');
-    throw response;
-  }
-};
-
-const validateRating = rating => {
-  const parsedRating = parseInt(rating);
-
-  if (
-    !Number.isInteger(parsedRating) ||
-    !(parsedRating >= 1 && parsedRating <= 5)
-  ) {
-    let response = buildResponse(
-      400,
-      `Rating must be an integer between 1 and 5`
-    );
-    throw response;
-  }
-};
-
 const postsController = {
   logRequest: (req, res, next) => {
     console.log('There was a request made on /posts');
@@ -61,34 +32,28 @@ const postsController = {
     try {
       if (Object.keys(req.query).length) {
         const { orderby, sort } = req.query;
-        functions.verifyQuery(orderby, sort);
+        verify.query(orderby, sort);
         query = { text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort)};
       }
       const data = await pool.query(query);
       res.json(buildResponse(200, 'Fetched all posts', data.rows));
-    } catch {
-      if (e.status) {
-        return res.status(e.status).json(e);
-      } else {
-        const response = buildResponse(500, 'Internal server error', e.message);
-        return res.status(response.status).json(response);
-      }
+    } catch (e) {
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, 'Internal server error', e.message);
+      return res.status(response.status).json(response);
     }
   },
   getPostBySearch: async (req, res) => {
-    let title = req.query.title;
-    let topic = req.query.topic;
-    let description = req.query.description;
+    const {title, topic, description} = req.query;
     let query = {};
     if (title) {
-      // title = title.toLowerCase();
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(posts.title) LIKE LOWER('%${title}%')`,
+        text: `${sqlAllPosts} WHERE LOWER(ps.title) LIKE LOWER('%${title}%')`,
       };
     }
     if (description) {
       query = {
-        text: `${sqlAllPosts} WHERE LOWER(posts.description) LIKE LOWER('%${description}%')`,
+        text: `${sqlAllPosts} WHERE LOWER(ps.description) LIKE LOWER('%${description}%')`,
       };
     }
     if (topic) {
@@ -98,9 +63,11 @@ const postsController = {
     }
     try {
       const data = await pool.query(query);
-      res.json(data.rows);
-    } catch {
-      return res.sendStatus(500);
+      res.json(buildResponse(200, 'Fetched all posts that match the search', data.rows));
+    } catch (e){
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, 'Internal server error', e.message);
+      return res.status(response.status).json(response);
     }
   },
 
@@ -113,7 +80,7 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-      validateId(postId, 1, data, 'post');
+      verify.id(postId, 1, data, 'post');
       res.json(
         buildResponse(
           200,
@@ -137,7 +104,7 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-      validateId(topicId, 1, data, 'topic');
+      verify.id(topicId, 1, data, 'topic');
       res.json(
         buildResponse(
           200,
@@ -159,16 +126,16 @@ const postsController = {
         `SELECT posts.title, posts.description, users.id FROM posts JOIN users ON users.id = posts.userid WHERE users.id=$1`,
         [userId]
       );
-      validateId(userId, 1, data, 'user');
-      res.json({
-        message: 'Successfully fetched posts from user with id: ' + userId,
-        code: 200,
-        description: 'Array: Posts from user with id: ' + userId,
-        data: data.rows,
-      });
+      verify.id(userId, 1, data, 'user');
+      res.json(buildResponse(
+        200,
+        `Successfully fetched post from user with id: ${userId}`,
+        data.rows
+      ));
     } catch (e) {
-      console.error(Error(e.message + ' Error: ' + e.code));
-      res.status(e.code).send(e.message);
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, 'Internal server error', e.message);
+      return res.status(response.status).json(response);
     }
   },
 
@@ -181,7 +148,7 @@ const postsController = {
 
     try {
       const data = await pool.query(query);
-      validateRating(rating);
+      verify.rating(rating);
       res.json(
         buildResponse(
           200,
@@ -194,14 +161,6 @@ const postsController = {
       const response = buildResponse(500, 'Internal server error', e.message);
       res.status(response.status).json(response);
     }
-  },
-
-  getPostsByRatingDesc: (req, res) => {
-    console.log(req.query)
-    // res.send("Hello")
-    // sql work related stuff
-    // res.send(`here you have the posts with ordered by rating DESC`);
-    // send back the data as a json
   },
 };
 
