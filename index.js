@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-const { PORT } = process.env;
+const { PORT } = process.env || 3000;
 
 // import routes
 const postsRoutes = require('./routes/posts');
