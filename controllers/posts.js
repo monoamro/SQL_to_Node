@@ -1,8 +1,11 @@
 const pool = require('../dbconfig');
+const format = require('pg-format');
+const functions = require('../functions');
 const buildResponse = require('../response');
 
-const sqlAllPosts = `
-SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
+
+
+const sqlAllPosts = `SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
        tp.title as topictitle,
 (
   SELECT row_to_json(userinfo)
@@ -54,11 +57,13 @@ const postsController = {
   },
 
   getAll: async (req, res) => {
-    const query = {
-      text: sqlAllPosts + ';',
-    };
-
+    let query = { text: sqlAllPosts + ';'};
     try {
+      if (Object.keys(req.query).length) {
+        const { orderby, sort } = req.query;
+        functions.verifyQuery(orderby, sort);
+        query = { text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort)};
+      }
       const data = await pool.query(query);
       res.json(buildResponse(200, 'Fetched all posts', data.rows));
     } catch {
@@ -192,8 +197,10 @@ const postsController = {
   },
 
   getPostsByRatingDesc: (req, res) => {
+    console.log(req.query)
+    // res.send("Hello")
     // sql work related stuff
-    res.send(`here you have the posts with ordered by rating DESC`);
+    // res.send(`here you have the posts with ordered by rating DESC`);
     // send back the data as a json
   },
 };
