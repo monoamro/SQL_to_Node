@@ -32,6 +32,21 @@ const validateId = (id, limit, data, idTitle) => {
   }
 };
 
+const validateRating = rating => {
+  const parsedRating = parseInt(rating);
+
+  if (
+    !Number.isInteger(parsedRating) ||
+    !(parsedRating >= 1 && parsedRating <= 5)
+  ) {
+    let response = buildResponse(
+      400,
+      `Rating must be an integer between 1 and 5`
+    );
+    throw response;
+  }
+};
+
 const postsController = {
   logRequest: (req, res, next) => {
     console.log('There was a request made on /posts');
@@ -152,10 +167,28 @@ const postsController = {
     }
   },
 
-  getPostsByRating: (req, res) => {
-    // sql work related stuff
-    res.send(`here you have the posts with rating ${req.params.rating}`);
-    // send back the data as a json
+  getPostsByRating: async (req, res) => {
+    const { rating } = req.params;
+    const query = {
+      text: `${sqlAllPosts} WHERE ps.rating=$1;`,
+      values: [rating],
+    };
+
+    try {
+      const data = await pool.query(query);
+      validateRating(rating);
+      res.json(
+        buildResponse(
+          200,
+          `Successfully fetched post with rating: ${rating}`,
+          data.rows
+        )
+      );
+    } catch (e) {
+      if (e.status) return res.status(e.status).json(e);
+      const response = buildResponse(500, 'Internal server error', e.message);
+      res.status(response.status).json(response);
+    }
   },
 
   getPostsByRatingDesc: (req, res) => {
