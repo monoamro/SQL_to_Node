@@ -4,8 +4,13 @@ const usersController = require('../controllers/users');
 //write code here
 
 module.exports = router;
-
-// '/users/id': show user profile
+// show all users
+router.get(
+  '/',
+  // usersController.logRequest,
+  usersController.getAll
+);
+// show user profile by ID
 router.get(
   '/:userId',
   // usersController.logRequest,
