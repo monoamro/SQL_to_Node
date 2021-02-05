@@ -10,6 +10,14 @@ router.get(
   // usersController.logRequest,
   usersController.getAll
 );
+
+// search user by text
+router.get(
+  '/search/',
+  // usersController.logRequest,
+  usersController.getUserBySearch
+);
+
 // show user profile by ID
 router.get(
   '/:userId',

@@ -29,6 +29,25 @@ const usersController = {
     }
   },
 
+  getUserBySearch: async (req, res) => {
+    let usr = req.query.who;
+    const query = {
+      text:
+        sqlAllUsers +
+        " WHERE LOWER(username) || ' ' || LOWER(firstname) || ' ' || LOWER(lastname) || ' ' || LOWER(email) ILIKE $1;",
+      values: [`%${usr}%`],
+    };
+    try {
+      const data = await pool.query(query);
+      res.status(200).json({
+        status: `'Found ${data.rows.length} users with the requested data: ${usr}'`,
+        data: data.rows,
+      });
+    } catch {
+      res.status(500).send(`something went wrong, search again`);
+    }
+  },
+
   getUserById: async (req, res) => {
     const userId = req.params.userId;
     const query = {
