@@ -47,11 +47,5 @@ router.get(
   postsController.getPostsByRating
 );
 
-// '/posts/ratings/best': show best posts
-router.get(
-  '/posts/ratings/desc',
-  // postsController.logRequest,
-  postsController.getPostsByRatingDesc
-);
 
 module.exports = router;
