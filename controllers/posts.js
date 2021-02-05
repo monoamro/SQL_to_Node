@@ -1,4 +1,7 @@
 const pool = require('../dbconfig');
+const format = require('pg-format');
+const functions = require('../functions');
+
 
 const sqlAllPosts = `SELECT ps.id, ps.title, ps.description, ps.rating, ps.image, ps.topicid,
        tp.title as topictitle,
@@ -23,14 +26,12 @@ const postsController = {
   },
   getAll: async (req, res) => {
     let query = { text: sqlAllPosts + ';'};
-    if (req.query) {
-      const { orderby, sort } = req.query;
-      query = {
-        text: `${sqlAllPosts}ORDER BY $1 $2;`,
-        values: [orderby, sort]
-      };
-    }
     try {
+      if (Object.keys(req.query).length) {
+        const { orderby, sort } = req.query;
+        functions.verifyQuery(orderby, sort);
+        query = { text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort)};
+      }
       const data = await pool.query(query);
       res.json(data.rows);
     } catch (e){
