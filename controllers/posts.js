@@ -38,7 +38,7 @@ const sqlPostsByUserId = `
     LEFT JOIN topics AS tp ON tp.id = ps.topicid
     WHERE us2.id=$1
     ) AS postsinfo
-  ) AS postsdata;`;
+  ) AS postsdata `;
 
 const postsController = {
   logRequest: (req, res, next) => {
@@ -52,8 +52,9 @@ const postsController = {
       if (Object.keys(req.query).length) {
         const { orderby, sort } = req.query;
         verify.query(orderby, sort);
-        query = { text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort)};
-
+        query = {
+          text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort),
+        };
       }
       const data = await pool.query(query);
       res.json(buildResponse(200, 'Fetched all posts', data.rows));
@@ -89,8 +90,10 @@ const postsController = {
     }
     try {
       const data = await pool.query(query);
-      res.json(buildResponse(200, 'Fetched all posts that match the search', data.rows));
-    } catch (e){
+      res.json(
+        buildResponse(200, 'Fetched all posts that match the search', data.rows)
+      );
+    } catch (e) {
       if (e.status) return res.status(e.status).json(e);
       const response = buildResponse(500, 'Internal server error', e.message);
       return res.status(response.status).json(response);
@@ -147,17 +150,22 @@ const postsController = {
 
   getPostsByUserId: async (req, res) => {
     const { userId } = req.params;
+
+    const query = {
+      text: sqlPostsByUserId + ';',
+      values: [userId],
+    };
+
     try {
-      const data = await pool.query(
-        `SELECT posts.title, posts.description, users.id FROM posts JOIN users ON users.id = posts.userid WHERE users.id=$1`,
-        [userId]
-      );
+      const data = await pool.query(query);
       verify.id(userId, 1, data, 'user');
-      res.json(buildResponse(
-        200,
-        `Successfully fetched post from user with id: ${userId}`,
-        data.rows
-      ));
+      res.json(
+        buildResponse(
+          200,
+          `Successfully fetched posts from user with id: ${userId}`,
+          data.rows
+        )
+      );
     } catch (e) {
       if (e.status) return res.status(e.status).json(e);
       const response = buildResponse(500, 'Internal server error', e.message);
