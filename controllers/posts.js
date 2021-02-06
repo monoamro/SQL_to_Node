@@ -41,11 +41,6 @@ const sqlPostsByUserId = `
   ) AS postsdata `;
 
 const postsController = {
-  logRequest: (req, res, next) => {
-    console.log('There was a request made on /posts');
-    next();
-  },
-
   getAll: async (req, res) => {
     let query = { text: sqlAllPosts + ';' };
     try {

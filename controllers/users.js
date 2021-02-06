@@ -9,10 +9,6 @@ FROM
 `;
 
 const usersController = {
-  logRequest: (req, res, next) => {
-    console.log('There was a request made on /users');
-    next();
-  },
   getAll: async (req, res) => {
     const query = {
       text: sqlAllUsers + ';',
