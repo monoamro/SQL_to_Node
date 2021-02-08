@@ -46,7 +46,7 @@ const postsController = {
     try {
       if (Object.keys(req.query).length) {
         const { orderby, sort } = req.query;
-        verify.query(orderby, sort);
+        verify.query(orderby, sort, 'posts');
         query = {
           text: format(`${sqlAllPosts} ORDER BY %I %s`, orderby, sort),
         };
