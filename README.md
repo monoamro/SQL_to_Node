@@ -6,7 +6,7 @@ WBS Coding School - Team-Project 6 (week 8-10)
 >
 > **Create Endpoints using Express, NodeJS and Postgres**
 >
-> Time to accomplish: 3 weeks (2h+/day) | Team-Size: 4
+> Time to accomplish: 2 weeks (2h+/day) | Team-Size: 4
 
 ---
 
@@ -52,10 +52,6 @@ WBS Coding School - Team-Project 6 (week 8-10)
   - Create .env file and add dotenv to the server
 - Test-2: All created endpoints retrieve the requested data from a database
 
-**Frontend with React**
-
-- comming soon
-
 ---
 
 **Endpoints that are now available with this application**
@@ -63,17 +59,17 @@ WBS Coding School - Team-Project 6 (week 8-10)
 | HTTP Method | ENDPOINTS - URI path with {query params that are available}                    | Description                                   |
 | :---------- | :----------------------------------------------------------------------------- | :-------------------------------------------- |
 | GET         | `/posts`                                                                       | retrieves all posts                           |
-| GET         | `/posts/*{postId}*`                                                            | retrieves posts with the requested id         |
+| GET         | `/posts/{postId}`                                                              | retrieves posts with the requested id         |
 | GET         | `/posts?orderby={rating or topicId}&sort={desc or asc}`                        | retrieves posts in specific order             |
-| GET         | `/posts/search?{title, description, topic}={*text*}`                           | runs a search on posts based on query params  |
-| GET         | `/posts/ratings/{*integer, range 1-5*}`                                        | retrieves posts filtered by rating (1-5)      |
-| GET         | `/posts/users/*{userId}*`                                                      | retrieves posts of user with the requested id |
-| GET         | `/posts/topics/*{topicId}*`                                                    | retrieves posts with the requested topicid    |
+| GET         | `/posts/search?{title, description, topic}={text}`                             | runs a search on posts based on query params  |
+| GET         | `/posts/ratings/{integer, range 1-5}`                                          | retrieves posts filtered by rating (1-5)      |
+| GET         | `/posts/users/{userId}`                                                        | retrieves posts of user with the requested id |
+| GET         | `/posts/topics/{topicId}`                                                      | retrieves posts with the requested topicid    |
 |             |                                                                                |                                               |
 | GET         | `/users`                                                                       | retrieves all users                           |
-| GET         | `/users/{*userId*}`                                                            | retrieves data of user with the requested id  |
+| GET         | `/users/{userId}`                                                              | retrieves data of user with the requested id  |
 | GET         | `/users?orderby={username, firstname, username or premiumid}&sort={desc, asc}` | retrieves users in specific order             |
-| GET         | `/users/search?who={*text&text*}`                                              | runs a search on users based on query params  |
+| GET         | `/users/search?who={text&text}`                                                | runs a search on users based on query params  |
 
 ---
 
